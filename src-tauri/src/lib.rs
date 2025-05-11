@@ -2,11 +2,9 @@ use gstreamer::prelude::*;
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
 
-// Global GStreamer initialization
 static GSTREAMER_INITIALIZED: Lazy<Result<(), gstreamer::glib::Error>> =
     Lazy::new(|| gstreamer::init());
 
-// Audio pipeline state
 struct AudioState {
     pipeline: Option<gstreamer::Pipeline>,
     is_playing: bool,
@@ -31,7 +29,6 @@ fn start_audio_capture() -> Result<(), String> {
         return Ok(());
     }
 
-    // Create a simple pipeline that captures audio from the microphone and plays it back
     let pipeline_str =
         "autoaudiosrc ! audioconvert ! audioresample ! autoaudiosink";
 
