@@ -4576,6 +4576,7 @@ dependencies = [
  "gstreamer-app",
  "gstreamer-sdp",
  "gstreamer-webrtc",
+ "once_cell",
  "serde",
  "serde_json",
  "tauri",

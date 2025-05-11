@@ -1,6 +1,7 @@
 .logo.vanilla:hover {
   filter: drop-shadow(0 0 2em #ffe21c);
 }
+
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
@@ -77,6 +78,7 @@ button {
 button:hover {
   border-color: #396cd8;
 }
+
 button:active {
   border-color: #396cd8;
   background-color: #e8e8e8;
@@ -89,6 +91,76 @@ button {
 
 #greet-input {
   margin-right: 5px;
+}
+
+.audio-controls {
+  margin: 2rem 0;
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+}
+
+.control-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+#toggle-audio {
+  padding: 0.8rem 2rem;
+  font-size: 1.1rem;
+  background-color: #24c8db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#toggle-audio:hover {
+  background-color: #1da9be;
+}
+
+#toggle-audio:active {
+  transform: scale(0.98);
+}
+
+#toggle-audio.active {
+  background-color: #ff4444;
+}
+
+#toggle-audio.active:hover {
+  background-color: #cc0000;
+}
+
+.status {
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background-color: #e0e0e0;
+}
+
+.status.playing {
+  background-color: #4caf50;
+  color: white;
+}
+
+.error-msg {
+  color: #ff0000;
+  margin-top: 1rem;
+  text-align: center;
+  min-height: 1.5rem;
+}
+
+.separator {
+  margin: 3rem 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.original-demo {
+  opacity: 0.7;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -106,7 +178,21 @@ button {
     color: #ffffff;
     background-color: #0f0f0f98;
   }
+
   button:active {
     background-color: #0f0f0f69;
+  }
+
+  .audio-controls {
+    background-color: #1a1a1a;
+  }
+
+  .status {
+    background-color: #333;
+    color: #f6f6f6;
+  }
+
+  .separator {
+    border-bottom-color: #444;
   }
 }
