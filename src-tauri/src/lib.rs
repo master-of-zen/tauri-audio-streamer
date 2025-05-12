@@ -36,7 +36,7 @@ fn start_audio_capture() -> Result<(), String> {
     }
 
     let pipeline_str =
-        "autoaudiosrc ! audioconvert ! audioresample ! appsink name=sink";
+        "autoaudiosrc ! audioconvert ! audioresample ! opusenc ! rtpopuspay ! appsink name=sink";
 
     let pipeline = gstreamer::parse::launch(pipeline_str)
         .map_err(|e| format!("Failed to create pipeline: {}", e))?;
