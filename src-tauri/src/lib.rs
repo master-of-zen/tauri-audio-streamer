@@ -2,7 +2,10 @@ use gstreamer::prelude::*;
 use gstreamer_app::AppSink;
 use once_cell::sync::Lazy;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use std::sync::Mutex;
+use webrtc::api::API;
+use webrtc::peer_connection::RTCPeerConnection;
 
 static GSTREAMER_INITIALIZED: Lazy<Result<(), gstreamer::glib::Error>> =
     Lazy::new(|| gstreamer::init());
@@ -13,6 +16,14 @@ struct AudioState {
     pipeline: Option<gstreamer::Pipeline>,
     is_playing: bool,
 }
+
+struct WebRTCState {
+    api: Option<Arc<API>>,
+    peer_connection: Option<Arc<RTCPeerConnection>>,
+}
+
+static WEBRTC_STATE: Lazy<Mutex<WebRTCState>> =
+    Lazy::new(|| Mutex::new(WebRTCState { api: None, peer_connection: None }));
 
 static AUDIO_STATE: Lazy<Mutex<AudioState>> =
     Lazy::new(|| Mutex::new(AudioState { pipeline: None, is_playing: false }));
