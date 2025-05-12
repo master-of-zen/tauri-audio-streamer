@@ -4,7 +4,8 @@ use once_cell::sync::Lazy;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::sync::Mutex;
-use webrtc::api::API;
+use webrtc::api::media_engine::MediaEngine;
+use webrtc::api::{APIBuilder, API};
 use webrtc::peer_connection::RTCPeerConnection;
 
 static GSTREAMER_INITIALIZED: Lazy<Result<(), gstreamer::glib::Error>> =
@@ -16,14 +17,6 @@ struct AudioState {
     pipeline: Option<gstreamer::Pipeline>,
     is_playing: bool,
 }
-
-struct WebRTCState {
-    api: Option<Arc<API>>,
-    peer_connection: Option<Arc<RTCPeerConnection>>,
-}
-
-static WEBRTC_STATE: Lazy<Mutex<WebRTCState>> =
-    Lazy::new(|| Mutex::new(WebRTCState { api: None, peer_connection: None }));
 
 static AUDIO_STATE: Lazy<Mutex<AudioState>> =
     Lazy::new(|| Mutex::new(AudioState { pipeline: None, is_playing: false }));
@@ -46,6 +39,7 @@ fn start_audio_capture() -> Result<(), String> {
         return Ok(());
     }
 
+    // By default we have 20 ms packets of 48khz opus
     let pipeline_str =
         "autoaudiosrc ! audioconvert ! audioresample ! opusenc ! rtpopuspay ! appsink name=sink";
 
@@ -69,25 +63,25 @@ fn start_audio_capture() -> Result<(), String> {
     appsink.set_property("max-buffers", 10u32);
     appsink.set_property("drop", false); // Don't drop buffers silently
 
-    // Callbacks for new singnals
+    // Callbacks for new signals
     appsink.set_callbacks(
         gstreamer_app::AppSinkCallbacks::builder()
-            // The closure that will be executed when a new sample is available
             .new_sample(|appsink| {
-                // Pull the sample from the appsink
                 match appsink.pull_sample() {
                     Ok(sample) => {
-                        let count = BUFFER_COUNT.fetch_add(1, Ordering::Relaxed);
-                        if count % 100 == 0 { // Log every 100 buffers
+                        let count =
+                            BUFFER_COUNT.fetch_add(1, Ordering::Relaxed);
+                        if count % 100 == 0 {
+                            // Log every 100 buffers
                             println!("Received buffer #{}", count);
                             // Todo: Access buffer data via sample.buffer().map_readable()
                         }
                         Ok(gstreamer::FlowSuccess::Ok)
-                    }
+                    },
                     Err(_) => {
                         eprintln!("Failed to pull sample from appsink");
                         Err(gstreamer::FlowError::Error)
-                    }
+                    },
                 }
             })
             .build(),
@@ -97,11 +91,13 @@ fn start_audio_capture() -> Result<(), String> {
         .set_state(gstreamer::State::Playing)
         .map_err(|e| format!("Failed to set pipeline to playing: {}", e))?;
 
-    println!("Pipeline set to playing."); // Added log
+    println!("Pipeline set to playing.");
     state.pipeline = Some(pipeline);
-    // state.appsink = Some(appsink); // Store if needed later
+    //state.appsink = Some(appsink);
     state.is_playing = true;
-    BUFFER_COUNT.store(0, Ordering::Relaxed); // Reset counterc
+
+    // Counter reset
+    BUFFER_COUNT.store(0, Ordering::Relaxed);
 
     Ok(())
 }
@@ -148,3 +144,46 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+// WEBRTC
+
+struct WebRTCState {
+    api: Option<Arc<webrtc::api::API>>,
+    peer_connection: Option<Arc<RTCPeerConnection>>,
+}
+
+static WEBRTC_STATE: Lazy<Mutex<WebRTCState>> =
+    Lazy::new(|| Mutex::new(WebRTCState { api: None, peer_connection: None }));
+
+// Helper function to get or create the WebRTC API
+fn get_api() -> Result<Arc<webrtc::api::API>, String> {
+    let mut state = WEBRTC_STATE.lock().unwrap();
+    if state.api.is_none() {
+        let mut m = MediaEngine::default();
+        // Setup desired codecs (minimal: Opus for audio)
+        m.register_default_codecs()
+            .map_err(|e| format!("Failed to register default codecs: {}", e))?;
+
+        let api = APIBuilder::new().with_media_engine(m).build();
+        state.api = Some(Arc::new(api));
+        println!("WebRTC API Initialized.");
+    }
+    state
+        .api
+        .clone()
+        .ok_or_else(|| "API should exist now".to_string())
+}
+
+/*
+fn create_rtc_config() -> RTCConfiguration {
+    let config = RTCConfiguration {
+        ice_servers: vec![RTCIceServer {
+            // https://dev.to/alakkadshaw/google-stun-server-list-21n4
+            urls: vec!["stun:stun.l.google.com:19302".to_string()],
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    config
+}
+*/

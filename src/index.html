@@ -3,39 +3,154 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="stylesheet" href="styles.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tauri App</title>
+  <link rel="stylesheet" href="styles.css" />
+  <title>Tauri GStreamer WebRTC</title>
   <script type="module" src="/main.js" defer></script>
+  <style>
+    .webrtc-controls,
+    .signaling-panel {
+      margin: 1rem 0;
+      padding: 1rem;
+      background-color: #eee;
+      border-radius: 8px;
+    }
+
+    .signaling-panel textarea {
+      width: 90%;
+      min-height: 80px;
+      margin-bottom: 10px;
+      font-family: monospace;
+    }
+
+    .signaling-panel label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .status#webrtc-status {
+      /* Style specifically for webrtc status */
+      background-color: #d1e7dd;
+      /* Light green */
+      color: #0f5132;
+      /* Dark green */
+    }
+
+    textarea[readonly] {
+      background-color: #f0f0f0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+
+      .webrtc-controls,
+      .signaling-panel {
+        background-color: #2a2a2a;
+      }
+
+      textarea[readonly] {
+        background-color: #333;
+      }
+
+      .status#webrtc-status {
+        background-color: #1f3d2a;
+        /* Darker green */
+        color: #a3cfbb;
+        /* Lighter green text */
+      }
+    }
+  </style>
 </head>
 
 <body>
-  <main class="container">
-    <h1>Audio Streamer - GStreamer Demo</h1>
+  <div class="container">
+    <h1>Tauri GStreamer WebRTC Demo</h1>
 
+    <!-- Error Message Area -->
+    <div id="error-msg" class="error-msg"></div>
+
+    <!-- Audio Capture Controls -->
     <div class="audio-controls">
-      <h2>Audio Capture & Playback</h2>
-      <p>Click the button below to capture audio from your microphone and play it back in real-time.</p>
-
+      <h2>Audio Capture (GStreamer)</h2>
       <div class="control-panel">
-        <button id="toggle-audio" type="button">Start Audio</button>
-        <div id="status" class="status">Status: Stopped</div>
+        <button id="toggle-audio" type="button">Start Audio Capture</button>
+        <span id="status" class="status">Status: Stopped</span>
+      </div>
+    </div>
+
+    <hr class="separator">
+
+    <!-- WebRTC Controls -->
+    <div class="webrtc-controls">
+      <h2>WebRTC Connection</h2>
+      <div class="control-panel">
+        <span id="webrtc-status" class="status">Status: Idle</span>
+        <button id="create-peer" type="button">1. Create Peer Connection</button>
+        <button id="close-peer" type="button" disabled>Close Connection</button>
       </div>
 
-      <div id="error-msg" class="error-msg"></div>
+      <div class="signaling-panel">
+        <h3>Manual Signaling (Copy/Paste between peers)</h3>
+
+        <div class="button-group">
+          <button id="create-offer" type="button" disabled>2a. Create Offer</button>
+          <button id="handle-offer" type="button" disabled>2b. Handle Offer</button>
+          <button id="handle-answer" type="button" disabled>3b. Handle Answer</button>
+        </div>
+
+        <div>
+          <label for="offer-sdp">Your Offer SDP (Copy this):</label>
+          <textarea id="offer-sdp" readonly></textarea>
+        </div>
+
+        <div>
+          <label for="answer-sdp">Your Answer SDP (Copy this):</label>
+          <textarea id="answer-sdp" readonly></textarea>
+        </div>
+
+        <hr style="margin: 15px 0;">
+
+        <div>
+          <label for="remote-sdp">Paste Remote SDP (Offer/Answer) or ICE Candidate JSON Here:</label>
+          <textarea id="remote-sdp"></textarea>
+        </div>
+
+        <div class="button-group">
+          <button id="add-ice-candidate" type="button">4b. Add Remote ICE Candidate</button>
+        </div>
+
+        <div>
+          <label for="ice-candidates">Your ICE Candidates (Copy these one by one or all):</label>
+          <textarea id="ice-candidates" readonly></textarea>
+        </div>
+
+      </div>
     </div>
 
-    <div class="separator"></div>
 
+    <hr class="separator">
+
+    <!-- Original Greet Demo (Optional) -->
     <div class="original-demo">
-      <h3>Original Tauri Demo</h3>
-      <form class="row" id="greet-form">
-        <input id="greet-input" placeholder="Enter a name..." />
-        <button type="submit">Greet</button>
-      </form>
+      <h2>Original Greet Demo</h2>
+      <div class="row">
+        <form id="greet-form">
+          <input id="greet-input" placeholder="Enter a name..." />
+          <button type="submit">Greet</button>
+        </form>
+      </div>
       <p id="greet-msg"></p>
     </div>
-  </main>
+
+  </div>
 </body>
 
 </html>
